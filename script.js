@@ -21,9 +21,9 @@ class Produkt {
                     <h4><b>${this.title}</b></h4>
                     <p>${this.description}</p>
                     <hr>
-                    <p>Price: ${this.price}</p><br>
+                    <br><p>Price: ${this.price}</p><br>
                     <p>Stock: ${this.stock}</p><br>
-                    <p>Rating: ${this.rating}</p>
+                    <p>Rating: ${this.rating}</p><br>
                     <button>Select</button>
                 </div>
         </div>
@@ -48,6 +48,7 @@ class Produkt {
 
 }
 let data;
+let procenta;
 class Evidence {
     constructor() {
         this.produkty = [];
@@ -74,6 +75,54 @@ class Evidence {
         }
     }
 
+    
+    nactiProduktyZWebu() {
+        const req = new XMLHttpRequest();
+        req.open("GET", "https://dummyjson.com/products");
+        req.send();
+
+        req.onprogress = (event) => {
+            if (event.loaded) {
+                procenta = 100;
+            }
+            
+        }
+
+        req.onload = (e) => {
+            data = JSON.parse(req.responseText);
+
+            if (data == null || data == undefined) {
+                console.error("Error because parsing");
+                return;
+            }
+
+            data["products"].forEach(produkt => {
+                this.addProdukt(new Produkt(
+                    produkt.id,
+                    produkt.title,
+                    produkt.description,
+                    produkt.price,
+                    produkt.discountPercentage,
+                    produkt.rating,
+                    produkt.stock,
+                    produkt.brand,
+                    produkt.category,
+                    produkt.thumbnail,
+                    produkt.images
+                ));
+            });
+
+            this.ulozToLocalStorage();
+            this.printProducts();
+            console.log(procenta);
+            if (procenta == 100) {
+                document.getElementById("progressbar").style.backgroundColor = "green";
+                document.getElementById("load").innerText = "LOADED";
+            }
+        }
+    }
+
+
     nactiProduktyZLocalStorage() {
         let produkty = JSON.parse(localStorage.getItem("produkty"));
 
@@ -97,36 +146,7 @@ class Evidence {
     }
     
 
-    nactiProduktyZWebu() {
-        const req = new XMLHttpRequest();
-        req.open("GET", "https://dummyjson.com/products");
-        req.send();
-
-        req.onload = (e) => {
-             data = JSON.parse(req.responseText);
-            
-
-        data["products"].forEach(produkt => {
-            this.addProdukt(new Produkt(
-                produkt.id,
-                produkt.title,
-                produkt.description,
-                produkt.price,
-                produkt.discountPercentage,
-                produkt.rating,
-                produkt.stock,
-                produkt.brand,
-                produkt.category,
-                produkt.thumbnail,
-                produkt.images
-            ));
-        });
-
-        this.ulozToLocalStorage();
-        this.printProducts();
-
-        }
-    }
+  
 
     ulozToLocalStorage() {
         localStorage.setItem("produkty", JSON.stringify(this.produkty));
@@ -139,7 +159,6 @@ class Evidence {
 
     printProducts() {
         let html = "";
-        let table = "";
         let contentView = document.getElementById("content");
         const MODE = contentView.getAttribute("data-mode");
 
@@ -156,9 +175,9 @@ class Evidence {
                 break;
 
             case "table":
-                table += ` <tr><th>Title</th><th>Description</th><th>Price</th><th>Discount</th><th>Rating</th><th>Stock</th><th>Brand</th><th>Category</th></tr>`;
+                html += ` <tr><th>Title</th><th>Description</th><th>Price</th><th>Discount</th><th>Rating</th><th>Stock</th><th>Brand</th><th>Category</th></tr>`;
                 this.produkty.forEach(produkt => {
-                    table += produkt.getTable();
+                    html += produkt.getTable();
                 });
                 break;
 
@@ -166,22 +185,13 @@ class Evidence {
                 console.error("Error printing products on page");
         }
         document.getElementById("content").innerHTML = html;
-        document.getElementById("table").innerHTML = table;
+        
     }
 }
 
 
-    
-
-
-
 onload = () => {
-
-    console.log(data);
-        /*
     let evidence = new Evidence();
-*/
-
 }
 
 
